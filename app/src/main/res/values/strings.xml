@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Android Course</string>
+    <string name="title_activity_battery">BatteryActivity</string>
+    <string name="button_click_text">тык</string>
 </resources>
