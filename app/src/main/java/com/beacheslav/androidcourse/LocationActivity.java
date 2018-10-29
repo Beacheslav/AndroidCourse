@@ -9,6 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -30,6 +32,7 @@ public class LocationActivity extends AppCompatActivity implements GoogleApiClie
 
     private TextView mTextView;
     private GoogleApiClient mClient;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,14 +44,18 @@ public class LocationActivity extends AppCompatActivity implements GoogleApiClie
                 .addConnectionCallbacks(this)
                 .build();
 
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_location);
         mTextView = (TextView) findViewById(R.id.text_view_location);
         //чекаем разрешения, если их нет, запрашиваем для андроида М и выше
         //получив разрешения получаем инфу о местоположении и обновляем вьюшку
-        if (!hasLocationPermission())
+        if (!hasLocationPermission()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mTextView.setText("Для получения данных о местоположении одобрите разрешение в всплывающем окне");
-            requestPermissions(LOCATION_PERMISSIONS,
-                    REQUEST_LOCATION_PERMISSIONS);
+                mTextView.setText("Для получения данных о местоположении одобрите разрешение в всплывающем окне");
+                requestPermissions(LOCATION_PERMISSIONS,
+                        REQUEST_LOCATION_PERMISSIONS);
+            }
+        } else {
+            mProgressBar.setVisibility(View.VISIBLE);
         }
     }
 
@@ -98,7 +105,8 @@ public class LocationActivity extends AppCompatActivity implements GoogleApiClie
         }
     }
 
-    //вызывается во время коннекта api клиента
+    //вызывается во время клиент находится в отключенном состоянии
+    //возвращает код причины
     @Override
     public void onConnectionSuspended(int i) {
         // пока этот метод не нужен
@@ -109,6 +117,7 @@ public class LocationActivity extends AppCompatActivity implements GoogleApiClie
         switch (requestCode) {
             case REQUEST_LOCATION_PERMISSIONS:
                 if (hasLocationPermission()) {
+                    mProgressBar.setVisibility(View.VISIBLE);
                     findLocation();
                 }
             default:
@@ -127,6 +136,7 @@ public class LocationActivity extends AppCompatActivity implements GoogleApiClie
                     @Override
                     public void onLocationChanged(Location location) {
                         mTextView.setText("Latitude: " + location.getLatitude() + " Longitude: " + location.getLongitude());
+                        mProgressBar.setVisibility(View.GONE);
                     }
                 });
     }
