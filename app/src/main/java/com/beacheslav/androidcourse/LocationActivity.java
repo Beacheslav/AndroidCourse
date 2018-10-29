@@ -18,7 +18,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-public class LocationActivity extends AppCompatActivity{
+public class LocationActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks{
 
     private static final String TAG = "LocationActivity";
     private static final String[] LOCATION_PERMISSIONS = new String[]{
@@ -38,12 +38,14 @@ public class LocationActivity extends AppCompatActivity{
 
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
                 .build();
 
         mTextView = (TextView) findViewById(R.id.text_view_location);
-        if (hasLocationPermission()) {
-            findLocation();
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        //чекаем разрешения, если их нет, запрашиваем для андроида М и выше
+        //получив разрешения получаем инфу о местоположении и обновляем вьюшку
+        if (!hasLocationPermission())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mTextView.setText("Для получения данных о местоположении одобрите разрешение в всплывающем окне");
             requestPermissions(LOCATION_PERMISSIONS,
                     REQUEST_LOCATION_PERMISSIONS);
@@ -86,6 +88,20 @@ public class LocationActivity extends AppCompatActivity{
     protected void onDestroy() {
         super.onDestroy();
         mClient = null;
+    }
+
+    //вызывается при положительном коннекте api клиента (ассинхронно)
+    @Override
+    public void onConnected(Bundle bundle) {
+        if (hasLocationPermission()) {
+            findLocation();
+        }
+    }
+
+    //вызывается во время коннекта api клиента
+    @Override
+    public void onConnectionSuspended(int i) {
+        // пока этот метод не нужен
     }
 
     @Override
